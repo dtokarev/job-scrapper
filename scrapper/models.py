@@ -62,7 +62,7 @@ class Profile(models.Model):
     city = models.CharField(max_length=255)
     info = models.TextField()
     task = models.ForeignKey(Task, on_delete=models.PROTECT)
-    segment = models.ForeignKey(Segment, on_delete=models.PROTECT)
+    segment = models.CharField(max_length=255)
     keyword = models.CharField(max_length=255)
     site = models.ForeignKey(Site, on_delete=models.PROTECT)
     outer_id = models.CharField(null=True, default=None, max_length=1023)

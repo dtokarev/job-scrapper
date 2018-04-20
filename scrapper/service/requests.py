@@ -16,7 +16,15 @@ def get(url: str, headers: dict = default_headers, bearer: str = None, params = 
     if params:
         encoded_params = urlencode(params, True)
         url += encoded_params if url.endswith('?') else '?'+encoded_params
-
+    # print(url)
     return requests.get(url, headers=headers)
+
+
+def validate_response(response: Response, errors) -> bool:
+    if int(response.status_code) < 400:
+        return True
+    errors.append(str(response.json()))
+
+    return False
 
 
