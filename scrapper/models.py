@@ -1,0 +1,83 @@
+from django.db import models
+
+
+class Segment(models.Model):
+    class Meta:
+        db_table = 'scrapper_segment'
+
+    name = models.CharField(max_length=255)
+
+
+class Keyword(models.Model):
+    class Meta:
+        db_table = 'scrapper_keyword'
+
+    segment = models.ForeignKey(Segment, on_delete=models.PROTECT)
+    name = models.CharField(max_length=255)
+
+
+class Site(models.Model):
+    class Meta:
+        db_table = 'scrapper_site'
+
+    STRATEGY_API = 1
+    STRATEGY_CRAWLER_SIMPLE = 2
+    STRATEGY_CRAWLER_JS_AWARE = 3
+
+    url = models.URLField(max_length=1023)
+    title = models.CharField(max_length=255)
+    password = models.CharField(null=True, default=None, max_length=255)
+    login = models.CharField(null=True, default=None, max_length=255)
+    app_id = models.CharField(null=True, default=None, max_length=255)
+    app_secret = models.CharField(null=True, default=None, max_length=255)
+    limit = models.IntegerField(default=10)
+    strategy = models.SmallIntegerField()
+
+
+class Task(models.Model):
+    class Meta:
+        db_table = 'scrapper_task'
+
+    id = models.BigAutoField(primary_key=True)
+    keyword = models.CharField(max_length=255)
+    in_process = models.BooleanField(default=0)
+    site = models.ForeignKey(Site, on_delete=models.PROTECT)
+    limit = models.IntegerField(default=10)
+    errors = models.TextField()
+    total_found = models.IntegerField(default=0)
+    search_params = models.TextField(null=True, default=None)
+    scanned_at = models.DateTimeField(null=True, default=None)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+
+class Profile(models.Model):
+    class Meta:
+        db_table = 'scrapper_profile'
+
+    id = models.BigAutoField(primary_key=True)
+    link = models.URLField(max_length=1023)
+    name = models.CharField(max_length=255)
+    lastname = models.CharField(max_length=255)
+    email = models.EmailField()
+    city = models.CharField(max_length=255)
+    info = models.TextField()
+    task = models.ForeignKey(Task, on_delete=models.PROTECT)
+    segment = models.ForeignKey(Segment, on_delete=models.PROTECT)
+    keyword = models.CharField(max_length=255)
+    site = models.ForeignKey(Site, on_delete=models.PROTECT)
+    outer_id = models.CharField(null=True, default=None, max_length=1023)
+    scanned_at = models.DateTimeField(null=True, default=None)
+
+
+class RegionDict(models.Model):
+    class Meta:
+        db_table = 'scrapper_region_dict'
+
+    id = models.BigAutoField(primary_key=True)
+    site = models.ForeignKey(Site, on_delete=models.PROTECT)
+    country_id = models.BigIntegerField()
+    country_name = models.CharField(max_length=255)
+    region_id = models.BigIntegerField()
+    region_name = models.CharField(max_length=255)
+    town_id = models.BigIntegerField()
+    town_name = models.CharField(max_length=255)

@@ -1,0 +1,4 @@
+- установить requirements.txt и requirements_global.txt
+- конфигурации
+- ./manage.py migrate scrapper
+- ./manage.py loaddata init
