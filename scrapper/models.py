@@ -38,9 +38,15 @@ class Task(models.Model):
     class Meta:
         db_table = 'scrapper_task'
 
+    STATUS_IN_QUEUE = 0
+    STATUS_PROCESSING = 1
+    STATUS_COMPLETED = 2
+    STATUS_ERROR = 3
+
     id = models.BigAutoField(primary_key=True)
+    segment = models.CharField(max_length=255)
     keyword = models.CharField(max_length=255)
-    in_process = models.BooleanField(default=0)
+    status = models.SmallIntegerField(default=0)
     site = models.ForeignKey(Site, on_delete=models.PROTECT)
     limit = models.IntegerField(default=10)
     errors = models.TextField()
