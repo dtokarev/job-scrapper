@@ -20,10 +20,6 @@ class Site(models.Model):
     class Meta:
         db_table = 'scrapper_site'
 
-    STRATEGY_API = 1
-    STRATEGY_CRAWLER_SIMPLE = 2
-    STRATEGY_CRAWLER_JS_AWARE = 3
-
     url = models.URLField(max_length=1023)
     title = models.CharField(max_length=255)
     password = models.CharField(null=True, default=None, max_length=255)
@@ -31,7 +27,6 @@ class Site(models.Model):
     app_id = models.CharField(null=True, default=None, max_length=255)
     app_secret = models.CharField(null=True, default=None, max_length=255)
     limit = models.IntegerField(default=10)
-    strategy = models.SmallIntegerField()
 
 
 class Task(models.Model):

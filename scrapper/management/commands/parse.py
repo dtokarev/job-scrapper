@@ -5,6 +5,7 @@ from django.db import transaction
 from django.utils.timezone import now
 
 from scrapper.models import Task
+from scrapper.service.client import client_factory
 from scrapper.service.client.client_api import SuperjobApiClient
 
 log = logging.getLogger('console')
@@ -25,10 +26,11 @@ class Command(BaseCommand):
             task.status = Task.STATUS_IN_QUEUE
             task.save()
 
-            client = SuperjobApiClient()
+            client = client_factory.get_instance(task.site)
             client.parse(task)
 
             if client.errors:
+                # TODO: uncomment
                 # task.status = Task.STATUS_ERROR
                 # task.scanned_at = now()
                 task.errors = str(client.errors)

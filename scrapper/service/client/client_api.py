@@ -6,21 +6,12 @@ from requests import HTTPError
 from scrapper.models import Site, Task, Profile
 from scrapper.service.requests import get, validate_response
 
-CLIENT_SUPREJOB = 'SUPREJOB'
-
 
 def get_site(title):
     return Site.objects.filter(title=title).first()
 
 
 class SuperjobApiClient:
-    site = get_site(CLIENT_SUPREJOB)
-
-    APP_LOGIN = site.login
-    APP_PASSWORD = site.password
-    APP_ID = site.app_id
-    APP_SECRET = site.app_secret
-
     URL_RETURN = 'http://www.ex.ru'
     URL_API = 'https://api.superjob.ru/2.0/'
     URL_OAUTH_AUTHORIZE = 'http://www.superjob.ru/authorize'
@@ -28,10 +19,9 @@ class SuperjobApiClient:
     URL_REFRESH = URL_API+'oauth2/refresh_token/'
     URL_RESUMES_SEARCH = URL_API+'resumes/'
 
-    api_headers = {'X-Api-App-Id': APP_SECRET, 'Content-Type': 'application/x-www-form-urlencoded'}
-
-    def __init__(self):
+    def __init__(self, site):
         super().__init__()
+        self.site = site
         self.errors = list()
         self.code = ''
         self.access_token = ''
@@ -46,9 +36,10 @@ class SuperjobApiClient:
     def api_search(self, task: Task) -> None:
         profiles_scanned = 0
         params = self.build_search_params(task)
+        api_headers = {'X-Api-App-Id': self.site.app_secret, 'Content-Type': 'application/x-www-form-urlencoded'}
 
         while profiles_scanned < task.limit:
-            response = get(self.URL_RESUMES_SEARCH, params=params, headers=self.api_headers)
+            response = get(self.URL_RESUMES_SEARCH, params=params, headers=api_headers)
 
             if not validate_response(response, self.errors):
                 return
@@ -94,15 +85,15 @@ class SuperjobApiClient:
                 params['t[]'] = [search_params.get('town_id'), ]
             if search_params.get('region_id'):
                 params['r[]'] = [search_params.get('region_id'), ]
-            if search_params.get('catalogues'):
-                params['catalogues'] = search_params.get('catalogues')
+            if search_params.get('specialization'):     #сделать словарь
+                params['catalogues'] = search_params.get('specialization')
             if search_params.get('payment_from'):
                 params['payment_from'] = search_params.get('payment_from')
             if search_params.get('age_from'):
                 params['age_from'] = search_params.get('age_from')
             if search_params.get('age_to'):
                 params['age_to'] = search_params.get('age_to')
-            if search_params.get('gender'):
+            if search_params.get('gender'):         #сделать словарь 2-муж, 3-жен
                 params['gender'] = search_params.get('gender')
             if search_params.get('and_keywords'):
                 # params['keywords[0][srws]'] = '7'
@@ -121,12 +112,12 @@ class SuperjobApiClient:
 
         # обновляем или генерим новый
         has_token = '' not in (self.code, self.access_token, self.refresh_token)
-        params = {'client_id': self.APP_ID, 'client_secret': self.APP_SECRET, 'hr': 1}
+        params = {'client_id': self.site.app_id, 'client_secret': self.site.app_secret, 'hr': 1}
         if has_token:
             params.update({'refresh_token': self.refresh_token})
             token_url = self.URL_REFRESH
         else:
-            params.update({'login': self.APP_LOGIN, 'password': self.APP_PASSWORD})
+            params.update({'login': self.site.login, 'password': self.site.password})
             token_url = self.URL_TOKEN
         response = get(token_url, params=params, json=False)
 

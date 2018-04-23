@@ -4,7 +4,7 @@ import logging
 from django.core.management import BaseCommand
 
 from scrapper.models import Task, Site
-from scrapper.service.client.client_api import SuperjobApiClient, CLIENT_SUPREJOB
+from scrapper.service.client.client_factory import CLIENT_SUPREJOB
 
 log = logging.getLogger('console')
 
@@ -44,7 +44,7 @@ class Command(BaseCommand):
             #         'Региональный менеджер',
             #     ],
             #     'params': {
-            #         'catalogues': ','.join([str(492)]),
+            #         'specialization': ','.join([str(492)]),
             #         'payment_from': 30000,
             #         'age_from': 25,
             #         'age_to': 60,
@@ -117,7 +117,7 @@ class Command(BaseCommand):
             #         'Индивидуальный предприниматель',
             #     ],
             #     'params': {
-            #         'catalogues': ','.join(map(str, [499, 33, 11, 284, 493, 492, 471, 482, 438])),
+            #         'specialization': ','.join(map(str, [499, 33, 11, 284, 493, 492, 471, 482, 438])),
             #         'age_from': 40,
             #     }
             # },
