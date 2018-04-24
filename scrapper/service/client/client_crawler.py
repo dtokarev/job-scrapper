@@ -3,6 +3,7 @@ from urllib.parse import urlencode
 from bs4 import BeautifulSoup
 from scrapper.models import Site, Profile, Task
 from scrapper.service import requests
+from scrapper.service.requests import normalize_url
 
 BS_PARSER = 'lxml'
 
@@ -17,7 +18,9 @@ class JobstreetCrawler:
 
 
 class HHCrawler:
-    URL_SEARCH = 'https://hh.ru/search/resume?'
+    URL_MAIN = "https://hh.ru/"
+    URL_SEARCH = URL_MAIN + 'search/resume?'
+    cookies = dict()
 
     def __init__(self, site: Site):
         super().__init__()
@@ -31,17 +34,18 @@ class HHCrawler:
             url = self.build_search_url(task, page)
             page += 1
             response = requests.get(url)
-            print(response.content)
-            bs = BeautifulSoup(response, BS_PARSER)
+            bs = BeautifulSoup(response.content, BS_PARSER)
+            links = self.get_links(bs)
+
             if not total_pages:
                 total_pages = self.count_pages(bs)
-            links = self.get_links(bs)
 
             for link in links:
                 profile = Profile(
                     keyword=task.keyword,
                     segment=task.segment,
                     site=task.site,
+                    task=task,
                 )
                 self.fill_profile(profile, link)
                 profile.save()
@@ -100,13 +104,16 @@ class HHCrawler:
         if not links:
             return 0
 
-        return int(links[-1].get_text())-1
+        total = int(links[-2].get_text())-1
+        return total
 
-    @staticmethod
-    def get_links(bs: BeautifulSoup) -> list():
-        return bs.find_all('a', attrs={'itemprop': 'jobTitle'})
+    def get_links(self, bs: BeautifulSoup) -> list():
+        nodes = bs.find_all('a', attrs={'itemprop': 'jobTitle'})
+        return [normalize_url(node['href'], self.URL_MAIN, path_only=True) for node in nodes]
 
     @staticmethod
     def fill_profile(profile: Profile, url):
         response = requests.get(url)
-        bs = BeautifulSoup(response, BS_PARSER)
+        bs = BeautifulSoup(response.content, BS_PARSER)
+        info = bs.find('div', attrs={'class': 'resume-wrapper'})
+        profile.info = info.contents if info is not None else ''

@@ -12,7 +12,11 @@ default_headers = {
 log = logging.getLogger('console')
 
 
-def get(url: str, headers: dict = default_headers, bearer: str = None, params=None) -> Response:
+def get(url: str,
+        headers: dict=default_headers,
+        bearer: str=None,
+        params=None,
+        cookies: dict=dict()) -> Response:
     if bearer is not None:
         headers['Authorization'] = "Bearer "+bearer
 
@@ -35,4 +39,18 @@ def validate_response(response: Response, errors: list) -> bool:
     log.error(error)
     return False
 
+
+def normalize_url(url: str, host: str ='', path_only: bool = False):
+    if len(host) > 0:
+        link = '{}/{}'.format( host.rstrip('/'), url.lstrip('/') )
+    else:
+        link = url
+
+    if link.startswith('//'):
+        link = 'http:' + link
+
+    if path_only:
+        link = link.split('?')[0]
+
+    return link
 
