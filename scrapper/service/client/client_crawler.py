@@ -1,3 +1,4 @@
+import json
 from urllib.parse import urlencode
 from bs4 import BeautifulSoup
 from scrapper.models import Site, Profile, Task
@@ -24,29 +25,38 @@ class HHCrawler:
 
     def parse(self, task: Task):
         page = 0
-        total = 0
+        total_pages = 0
+        total_profiles = 0
         while True:
-            url = self.build_search_url({}, "Business development manager", page)
+            url = self.build_search_url(task, page)
+            page += 1
             response = requests.get(url)
+            print(response.content)
             bs = BeautifulSoup(response, BS_PARSER)
-            if not total:
-                total = self.count_pages(bs)
+            if not total_pages:
+                total_pages = self.count_pages(bs)
             links = self.get_links(bs)
 
             for link in links:
-                profile = Profile()
+                profile = Profile(
+                    keyword=task.keyword,
+                    segment=task.segment,
+                    site=task.site,
+                )
                 self.fill_profile(profile, link)
                 profile.save()
+                total_profiles += 1
 
-            if page >= total:
+            if page > total_pages:
                 break
+        task.total_found = total_profiles
 
-    def build_search_url(self, params, keyword, page):
-        # заменить на Task
+    def build_search_url(self, task: Task, page):
+        params = json.loads(task.search_params)
         p = {
             'order_by': 'relevance',
             'area': 1,
-            'text': keyword,
+            'text': task.keyword,
             'logic': 'normal',
             'pos': 'full_text',
             'exp_period': 'all_time',
@@ -56,25 +66,25 @@ class HHCrawler:
         labels = set()
 
         if params.get('age_from'):
-            p.update(params.get('age_from'))
+            p['age_from'] = params.get('age_from')
             labels.add('only_with_age')
         if params.get('age_to'):
-            p.update(params.get('age_to'))
+            p['age_to'] = params.get('age_to')
             labels.add('only_with_age')
         if params.get('salary_from'):
-            p.update(params.get('salary_from'))
+            p['salary_from'] = params.get('salary_from')
             labels.add('only_with_salary')
         if params.get('salary_to'):
-            p.update(params.get('salary_to'))
+            p['salary_to'] = params.get('salary_to')
             labels.add('only_with_salary')
         if params.get('salary_from'):
-            p.update(params.get('salary_from'))
+            p['salary_from'] = params.get('salary_from')
             labels.add('only_with_salary')
         if params.get('gender'):
-            p.update(params.get('gender'))
+            p['gender'] = params.get('gender')
             labels.add('only_with_gender')
         if params.get('specialization'):
-            p.update(params.get('specialization'))
+            p['specialization'] = params.get()
             p.update({'from': 'cluster_professionalArea'})
 
         url = self.URL_SEARCH + urlencode(p)
@@ -98,4 +108,5 @@ class HHCrawler:
 
     @staticmethod
     def fill_profile(profile: Profile, url):
-        pass
+        response = requests.get(url)
+        bs = BeautifulSoup(response, BS_PARSER)

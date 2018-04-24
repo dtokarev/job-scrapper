@@ -6,7 +6,6 @@ from django.utils.timezone import now
 
 from scrapper.models import Task
 from scrapper.service.client import client_factory
-from scrapper.service.client.client_api import SuperjobApiClient
 
 log = logging.getLogger('console')
 

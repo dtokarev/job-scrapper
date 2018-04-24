@@ -4,7 +4,7 @@ import logging
 from django.core.management import BaseCommand
 
 from scrapper.models import Task, Site
-from scrapper.service.client.client_factory import CLIENT_SUPREJOB
+from scrapper.service.client.client_factory import *
 
 log = logging.getLogger('console')
 
@@ -17,39 +17,39 @@ class Command(BaseCommand):
         # cities = [89, 42, 33, 130, 12, 13, 17, 119, 5, 173]
 
         tasks = segments = {
-            # 'Рекламщики СМИ': {
-            #     'keywords': [
-            #         'Супервайзер отдела продаж',
-            #         'Директор по продажам и развитию',
-            #         'Директор по продажам',
-            #         'Директор по развитию',
-            #         'Менеджер по развитию',
-            #         'Руководитель отдела',
-            #         'Генеральный директор',
-            #         'Руководитель группы',
-            #         'Коммерческий директор',
-            #         'Ведущий менеджер по продажам',
-            #         'Руководитель направления',
-            #         'Руководитель департамента',
-            #         'Начальник отдела',
-            #         'Заместитель руководителя',
-            #         'Директор по продажам',
-            #         'Специалист по работе с клиентами',
-            #         'Директор по работе с клиентами',
-            #         'Account manager',
-            #         'Business development director',
-            #         'Business development manager',
-            #         'Аккаунт-менеджер',
-            #         'Аккаунт-директор',
-            #         'Региональный менеджер',
-            #     ],
-            #     'params': {
-            #         'specialization': ','.join([str(492)]),
-            #         'payment_from': 30000,
-            #         'age_from': 25,
-            #         'age_to': 60,
-            #     }
-            # },
+            'Рекламщики СМИ': {
+                'keywords': [
+                    # 'Супервайзер отдела продаж',
+                    # 'Директор по продажам и развитию',
+                    # 'Директор по продажам',
+                    # 'Директор по развитию',
+                    # 'Менеджер по развитию',
+                    # 'Руководитель отдела',
+                    # 'Генеральный директор',
+                    # 'Руководитель группы',
+                    # 'Коммерческий директор',
+                    # 'Ведущий менеджер по продажам',
+                    # 'Руководитель направления',
+                    # 'Руководитель департамента',
+                    # 'Начальник отдела',
+                    # 'Заместитель руководителя',
+                    'Директор по продажам',
+                    # 'Специалист по работе с клиентами',
+                    # 'Директор по работе с клиентами',
+                    # 'Account manager',
+                    # 'Business development director',
+                    # 'Business development manager',
+                    # 'Аккаунт-менеджер',
+                    # 'Аккаунт-директор',
+                    # 'Региональный менеджер',
+                ],
+                'params': {
+                    # 'specialization': ','.join([str(492)]),
+                    'payment_from': 30000,
+                    'age_from': 25,
+                    'age_to': 60,
+                }
+            },
             # 'Страховой агент': {
             #     'keywords': [
             #         'Страховой агент',
@@ -121,20 +121,20 @@ class Command(BaseCommand):
             #         'age_from': 40,
             #     }
             # },
-            'Сетевики MLM': {
-                'keywords': [
-                    'Представитель компании',
-                    # 'Продавец-консультант',
-                    # 'Консультант',
-                ],
-                'params': {
-                    'gender': 3,
-                    'age_from': 25,
-                    'and_keywords': [
+            # 'Сетевики MLM': {
+            #     'keywords': [
+            #         'Представитель компании',
+            #         # 'Продавец-консультант',
+            #         # 'Консультант',
+            #     ],
+            #     'params': {
+            #         'gender': 3,
+            #         'age_from': 25,
+            #         'and_keywords': [
                         # 'Орифлэйм косметикс',
                         # 'Эйвон Бьюти Продак Компани',
-                        'Avon',
-                        'Amway',
+                        # 'Avon',
+                        # 'Amway',
                         # 'Biosea',
                         # 'Beautiful Life',
                         # 'Коралловый Клуб',
@@ -280,12 +280,12 @@ class Command(BaseCommand):
                         # 'Litani',
                         # 'Riway',
                         # 'ЛиВест',
-                    ]
-                }
-            },
+                    # ]
+                # }
+            # },
         }
 
-        site = Site.objects.filter(title=CLIENT_SUPREJOB).first()
+        site = Site.objects.filter(title=CLIENT_HH).first()
 
         for city in cities:
             for segment_name, segment_params in tasks.items():
