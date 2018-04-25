@@ -1,6 +1,7 @@
 import logging
 
 from django.core.management import BaseCommand
+from django.db.models import Q
 
 from scrapper.models import Profile, Site
 from scrapper.service.client import client_factory
@@ -21,8 +22,8 @@ class Command(BaseCommand):
         scanned_ids = set()
 
         while True:
-            profiles = Profile.objects.filter(site=site) \
-                .exclude(resume_id__in=scanned_ids, email__isnull=False, email='')[:self.BATCH_SIZE]
+            profiles = Profile.objects.filter(site=site, email__isnull=False) \
+                .exclude(resume_id__in=scanned_ids, email='')[:self.BATCH_SIZE]
             if not profiles:
                 break
 
