@@ -1,7 +1,6 @@
 import logging
 
 from django.core.management import BaseCommand
-from django.db.models import Q
 
 from scrapper.models import Profile, Site
 from scrapper.service.client import client_factory
@@ -19,19 +18,26 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         site = Site.objects.filter(title=CLIENT_SUPREJOB).first()
         client = client_factory.get_instance(site)
-        scanned_ids = set(p.outer_id for p in Profile.objects.filter(email__isnull=False, site=site).exclude(email=''))
+        scanned_ids = set(p.outer_id for p in Profile.objects.filter(scanned_at__isnull=False, site=site))
+        cities_count = dict()
 
         while True:
-            profiles = Profile.objects.filter(Q(email__isnull=True) | Q(email=''), site=site) \
-                .exclude(outer_id__in=scanned_ids)[:self.BATCH_SIZE]
-            if not profiles:
+            profile = Profile.objects.filter(scanned_at__isnull=True, site=site) \
+                .exclude(outer_id__in=scanned_ids)\
+                .exclude(segment__in=['Топ руководители', 'Рекламщики СМИ'])\
+                .first()
+
+            if not profile:
                 break
 
-            client.api_populate_profiles(profiles)
-
-            for profile in profiles:
-                print(profile.id)
+            # TODO: временный костыль
+            if profile.city not in cities_count:
+                cities_count[profile.city] = 0
+            elif cities_count[profile.city] > 500:
                 scanned_ids.add(profile.outer_id)
+                continue
+            else:
+                cities_count[profile.city] += 1
 
-            break  # for test
-
+            client.api_populate_profiles(profile)
+            scanned_ids.add(profile.outer_id)

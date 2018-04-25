@@ -57,11 +57,12 @@ class Profile(models.Model):
 
     id = models.BigAutoField(primary_key=True)
     link = models.URLField(max_length=1023)
-    name = models.CharField(max_length=255)
-    lastname = models.CharField(max_length=255)
-    email = models.EmailField()
+    name = models.CharField(null=True, default=None, max_length=255)
+    lastname = models.CharField(null=True, default=None, max_length=255)
+    email = models.EmailField(null=True, default=None)
+    phone = models.CharField(null=True, default=None, max_length=255)
     city = models.CharField(max_length=255)
-    info = models.TextField()
+    info = models.TextField(null=True, default=None, )
     task = models.ForeignKey(Task, on_delete=models.PROTECT)
     segment = models.CharField(max_length=255)
     keyword = models.CharField(max_length=255)
@@ -69,6 +70,7 @@ class Profile(models.Model):
     resume_id = models.CharField(null=True, default=None, max_length=1023)
     outer_id = models.CharField(null=True, default=None, max_length=1023)
     scanned_at = models.DateTimeField(null=True, default=None)
+    scan_errors = models.TextField(null=True, default=None)
 
 
 class RegionDict(models.Model):

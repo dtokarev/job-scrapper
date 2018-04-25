@@ -23,8 +23,19 @@ def get(url: str,
     if params:
         encoded_params = urlencode(params, True)
         url += encoded_params if url.endswith('?') else '?'+encoded_params
-    # print(url)
+    print(url)
     return requests.get(url, headers=headers)
+
+
+def post(url: str,
+         headers: dict=default_headers,
+         bearer: str=None,
+         cookies: dict=None) -> Response:
+    if bearer is not None:
+        headers['Authorization'] = "Bearer "+bearer
+
+    print(url)
+    return requests.post(url, headers=headers)
 
 
 def validate_response(response: Response, errors: list) -> bool:

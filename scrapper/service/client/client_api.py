@@ -5,17 +5,18 @@ from django.utils.timezone import now
 from requests import HTTPError
 
 from scrapper.models import Task, Profile
-from scrapper.service.requests import get, validate_response
+from scrapper.service.requests import get, validate_response, post
 
 
 class SuperjobApiClient:
-    BATCH_SIZE = 1  # TODO: заменить на 200
+    BATCH_SIZE = 200
     URL_RETURN = 'http://www.ex.ru'
     URL_API = 'https://api.superjob.ru/2.0/'
     URL_OAUTH_AUTHORIZE = 'http://www.superjob.ru/authorize'
     URL_TOKEN = URL_API+'oauth2/password/'
     URL_REFRESH = URL_API+'oauth2/refresh_token/'
     URL_RESUMES_SEARCH = URL_API+'resumes/'
+    URL_RESUMES_BUY = URL_API+'hr/resumes/{}/buy/'
 
     def __init__(self, site):
         super().__init__()
@@ -37,37 +38,36 @@ class SuperjobApiClient:
         # self.refresh_credentials()
         self.api_search(task)
 
-    def api_populate_profiles(self, profiles: [Profile]):
-        params = {
-            'ids': [profile.resume_id for profile in profiles]
-        }
-
-        while True:
-            request_cnt = 0
-            self.refresh_credentials()
-            response = get(self.URL_RESUMES_SEARCH,
-                           params=params,
-                           headers=self.api_headers,
-                           bearer=self.access_token)
-            if response.status_code != 410:
-                break
-            request_cnt += 1
-            print("superjob token expired, retrying #{}".format(request_cnt))
-
+    def api_populate_profiles(self, profile: Profile):
+        # while True:
+        #     request_cnt = 0
+        #     self.refresh_credentials()
+        #     response = get(self.URL_RESUMES_SEARCH,
+        #                    params=params,
+        #                    headers=self.api_headers,
+        #                    bearer=self.access_token)
+        #     if response.status_code != 410:
+        #         break
+        #     request_cnt += 1
+        #     print("superjob token expired, retrying #{}".format(request_cnt))
+        self.refresh_credentials()
+        response = post(self.URL_RESUMES_BUY.format(profile.resume_id),
+                        headers=self.api_headers,
+                        bearer=self.access_token)
         if not validate_response(response, self.errors):
             return
 
         response_json = response.json()
 
-        for p in response_json.get('objects', []):
-            for profile in profiles:
-                if profile.resume_id != p.get('id', ''):
-                    continue
-                profile.scanned_at = now()
-                profile.name = p.get('firstname', '')
-                profile.lastname = p.get('lastname', '')
-                profile.email = p.get('email', '')
-                profile.save()
+        p = response_json.get('resume', dict())
+        profile.scanned_at = now()
+        profile.name = p.get('firstname', '')
+        profile.lastname = p.get('lastname', '')
+        profile.email = p.get('email', '')
+        profile.phone = p.get('phone1', p.get('phone2', ''))
+        profile.info = str(p)
+        profile.scan_errors = str(self.errors) if self.errors else None
+        profile.save()
 
     def api_search(self, task: Task) -> None:
         profiles_scanned = 0
@@ -91,6 +91,8 @@ class SuperjobApiClient:
                     site=self.site,
                     link=p.get('link', ''),
                     resume_id=p.get('id', ''),
+                    name = p.get('firstname', ''),
+                    lastname = p.get('lastname', ''),
                     outer_id=p.get('id_user', ''),
                     city=p.get('town', {}).get('title', ''),
                     info=str(p),
