@@ -66,6 +66,7 @@ class Profile(models.Model):
     segment = models.CharField(max_length=255)
     keyword = models.CharField(max_length=255)
     site = models.ForeignKey(Site, on_delete=models.PROTECT)
+    resume_id = models.CharField(null=True, default=None, max_length=1023)
     outer_id = models.CharField(null=True, default=None, max_length=1023)
     scanned_at = models.DateTimeField(null=True, default=None)
 

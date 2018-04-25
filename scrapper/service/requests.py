@@ -16,7 +16,7 @@ def get(url: str,
         headers: dict=default_headers,
         bearer: str=None,
         params=None,
-        cookies: dict=dict()) -> Response:
+        cookies: dict=None) -> Response:
     if bearer is not None:
         headers['Authorization'] = "Bearer "+bearer
 

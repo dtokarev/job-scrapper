@@ -1,7 +1,6 @@
 import logging
 
 from django.core.management import BaseCommand
-from django.db import transaction
 from django.utils.timezone import now
 
 from scrapper.models import Task
@@ -13,7 +12,7 @@ log = logging.getLogger('console')
 class Command(BaseCommand):
     help = "parse tasks in queue"
 
-    @transaction.atomic
+    # @transaction.atomic
     def handle(self, *args, **options):
         tasks = Task.objects.filter(status=False, scanned_at__isnull=True).all()
 
@@ -29,9 +28,8 @@ class Command(BaseCommand):
             client.parse(task)
 
             if client.errors:
-                # TODO: uncomment
-                # task.status = Task.STATUS_ERROR
-                # task.scanned_at = now()
+                task.status = Task.STATUS_ERROR
+                task.scanned_at = now()
                 task.errors = str(client.errors)
             else:
                 task.status = Task.STATUS_COMPLETED

@@ -34,3 +34,6 @@ venv/
 #IDE
 .idea
 
+#project
+files/
+

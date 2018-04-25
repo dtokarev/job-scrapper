@@ -1,17 +1,15 @@
 import json
 import time
 
+from django.utils.timezone import now
 from requests import HTTPError
 
 from scrapper.models import Site, Task, Profile
 from scrapper.service.requests import get, validate_response
 
 
-def get_site(title):
-    return Site.objects.filter(title=title).first()
-
-
 class SuperjobApiClient:
+    BATCH_SIZE = 1  # TODO: заменить на 200
     URL_RETURN = 'http://www.ex.ru'
     URL_API = 'https://api.superjob.ru/2.0/'
     URL_OAUTH_AUTHORIZE = 'http://www.superjob.ru/authorize'
@@ -27,36 +25,60 @@ class SuperjobApiClient:
         self.access_token = ''
         self.refresh_token = ''
         self.token_valid_till = time.time()
+        self.total_profiles = 0
+        self.scanned_profile_ids = set()
+        self.api_headers = {
+            'X-Api-App-Id': self.site.app_secret,
+            'Content-Type': 'application/x-www-form-urlencoded'
+        }
 
     def parse(self, task: Task) -> None:
-        print('----------')
+        print('-----TASK ID: {}-----'.format(task.id))
         # self.refresh_credentials()
         self.api_search(task)
+
+    def api_populate_profiles(self, profiles: [Profile]):
+        params = {
+            'ids': [profile.resume_id for profile in profiles]
+        }
+        response = get(self.URL_RESUMES_SEARCH, params=params, headers=self.api_headers)
+        if not validate_response(response, self.errors):
+            return
+        response_json = response.json()
+
+        for p in response_json.get('objects', []):
+            for profile in profiles:
+                if profile.resume_id != p.get('id', ''):
+                    continue
+                profile.scanned_at = now()
+                profile.name = p.get('firstname', '')
+                profile.lastname = p.get('lastname', '')
+                profile.email = p.get('email', '')
+                profile.save()
 
     def api_search(self, task: Task) -> None:
         profiles_scanned = 0
         params = self.build_search_params(task)
-        api_headers = {'X-Api-App-Id': self.site.app_secret, 'Content-Type': 'application/x-www-form-urlencoded'}
 
         while profiles_scanned < task.limit:
-            response = get(self.URL_RESUMES_SEARCH, params=params, headers=api_headers)
+            response = get(self.URL_RESUMES_SEARCH, params=params, headers=self.api_headers)
 
             if not validate_response(response, self.errors):
                 return
 
             response_json = response.json()
-            task.total_found = response_json.get('total', 0)
 
-            print(task.total_found)
+            if self.total_profiles == 0:
+                self.total_profiles = response_json.get('total', 0)
+                task.total_found = self.total_profiles
+                print('total: {}'.format(self.total_profiles))
 
             for p in response_json.get('objects', []):
                 Profile(
                     site=self.site,
                     link=p.get('link', ''),
+                    resume_id=p.get('id', ''),
                     outer_id=p.get('id_user', ''),
-                    name=p.get('firstname', ''),
-                    lastname=p.get('lastname', ''),
-                    email=p.get('email', ''),
                     city=p.get('town', {}).get('title', ''),
                     info=str(p),
                     keyword=task.keyword,
@@ -70,13 +92,11 @@ class SuperjobApiClient:
             else:
                 params['page'] += 1
 
-    @staticmethod
-    def build_search_params(task: Task) -> dict:
+    def build_search_params(self, task: Task) -> dict:
         params = {
             'page': 0,
-            'count': 100,
+            'count': self.BATCH_SIZE,
             'citizenship[]': {1},
-            'keyword': task.keyword
         }
 
         if task.search_params:
@@ -96,14 +116,14 @@ class SuperjobApiClient:
             if search_params.get('gender'):         #сделать словарь 2-муж, 3-жен
                 params['gender'] = search_params.get('gender')
             if search_params.get('and_keywords'):
-                # params['keywords[0][srws]'] = '7'
-                # params['keywords[0][skwc]'] = 'and'
-                # params['keywords[0][keys]'] = task.keyword
+                params['keywords[0][srws]'] = '7'
+                params['keywords[0][skwc]'] = 'and'
+                params['keywords[0][keys]'] = task.keyword
                 params['keywords[1][srws]'] = '7'
                 params['keywords[1][skwc]'] = 'or'
-                params['keywords[1][keys][]'] = search_params.get('and_keywords')
-            # else:
-            #     params['keyword'] = task.keyword
+                params['keywords[1][keys]'] = ' '.join(search_params.get('and_keywords'))
+            else:
+                params['keyword'] = task.keyword
         return params
 
     def refresh_credentials(self) -> None:
@@ -119,7 +139,7 @@ class SuperjobApiClient:
         else:
             params.update({'login': self.site.login, 'password': self.site.password})
             token_url = self.URL_TOKEN
-        response = get(token_url, params=params, json=False)
+        response = get(token_url, params=params)
 
         if not validate_response(response, self.errors):
             raise HTTPError(str(self.errors))
