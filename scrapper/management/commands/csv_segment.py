@@ -1,4 +1,3 @@
-import csv
 import logging
 
 from django.core.management import BaseCommand

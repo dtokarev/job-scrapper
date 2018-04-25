@@ -4,7 +4,7 @@ import time
 from django.utils.timezone import now
 from requests import HTTPError
 
-from scrapper.models import Site, Task, Profile
+from scrapper.models import Task, Profile
 from scrapper.service.requests import get, validate_response
 
 
@@ -41,9 +41,22 @@ class SuperjobApiClient:
         params = {
             'ids': [profile.resume_id for profile in profiles]
         }
-        response = get(self.URL_RESUMES_SEARCH, params=params, headers=self.api_headers)
+
+        while True:
+            request_cnt = 0
+            self.refresh_credentials()
+            response = get(self.URL_RESUMES_SEARCH,
+                           params=params,
+                           headers=self.api_headers,
+                           bearer=self.access_token)
+            if response.status_code != 410:
+                break
+            request_cnt += 1
+            print("superjob token expired, retrying #{}".format(request_cnt))
+
         if not validate_response(response, self.errors):
             return
+
         response_json = response.json()
 
         for p in response_json.get('objects', []):
