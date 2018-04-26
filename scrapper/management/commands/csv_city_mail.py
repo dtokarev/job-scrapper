@@ -26,5 +26,5 @@ class Command(BaseCommand):
                     m[profile.email_provider] = dict()
                 m[profile.email_provider].update({profile.city: 1})
 
-        dict_to_csv(m,  '{}/files/csv/by_email_provider_{}.csv'.format(BASE_DIR, now()))
+        dict_to_csv(m,  '{}/files/csv/by_city_mail_{}.csv'.format(BASE_DIR, now()))
 
