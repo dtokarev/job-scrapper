@@ -5,6 +5,7 @@ from django.utils.timezone import now
 from requests import HTTPError
 
 from scrapper.models import Task, Profile
+from scrapper.service.profile_service import ident_provider
 from scrapper.service.requests import get, validate_response, post
 
 
@@ -64,6 +65,7 @@ class SuperjobApiClient:
         profile.name = p.get('firstname', '')
         profile.lastname = p.get('lastname', '')
         profile.email = p.get('email', '')
+        profile.email_provider = ident_provider(profile.email)
         profile.phone = p.get('phone1', p.get('phone2', ''))
         profile.info = str(p)
         profile.scan_errors = str(self.errors) if self.errors else None
@@ -130,6 +132,8 @@ class SuperjobApiClient:
                 params['age_to'] = search_params.get('age_to')
             if search_params.get('gender'):         #сделать словарь 2-муж, 3-жен
                 params['gender'] = search_params.get('gender')
+            if search_params.get('experience_from'):
+                params['experience_from'] = search_params.get('experience_from')
             if search_params.get('and_keywords'):
                 params['keywords[0][srws]'] = '7'
                 params['keywords[0][skwc]'] = 'and'

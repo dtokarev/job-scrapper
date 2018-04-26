@@ -19,25 +19,27 @@ class Command(BaseCommand):
         site = Site.objects.filter(title=CLIENT_SUPREJOB).first()
         client = client_factory.get_instance(site)
         scanned_ids = set(p.outer_id for p in Profile.objects.filter(scanned_at__isnull=False, site=site))
-        cities_count = dict()
+        city_segment_count = dict()
 
         while True:
             profile = Profile.objects.filter(scanned_at__isnull=True, site=site) \
                 .exclude(outer_id__in=scanned_ids)\
-                .exclude(segment__in=['Топ руководители', 'Рекламщики СМИ'])\
                 .first()
 
             if not profile:
                 break
 
             # TODO: временный костыль
-            if profile.city not in cities_count:
-                cities_count[profile.city] = 0
-            elif cities_count[profile.city] > 500:
+            key = '{}{}'.format(profile.segment, profile.city)
+            if key not in city_segment_count:
+                city_segment_count[key] = 0
+            elif city_segment_count[key] > 200:
                 scanned_ids.add(profile.outer_id)
                 continue
             else:
-                cities_count[profile.city] += 1
+                city_segment_count[key] += 1
+
+            print('{}: {}'.format(key, city_segment_count[key]))
 
             client.api_populate_profiles(profile)
             scanned_ids.add(profile.outer_id)

@@ -60,6 +60,7 @@ class Profile(models.Model):
     name = models.CharField(null=True, default=None, max_length=255)
     lastname = models.CharField(null=True, default=None, max_length=255)
     email = models.EmailField(null=True, default=None)
+    email_provider = models.CharField(null=True, default=None, max_length=255)
     phone = models.CharField(null=True, default=None, max_length=255)
     city = models.CharField(max_length=255)
     info = models.TextField(null=True, default=None, )
