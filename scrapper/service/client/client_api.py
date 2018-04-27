@@ -134,6 +134,8 @@ class SuperjobApiClient:
                 params['gender'] = search_params.get('gender')
             if search_params.get('experience_from'):
                 params['experience_from'] = search_params.get('experience_from')
+            if search_params.get('experience_to'):
+                params['experience_to'] = search_params.get('experience_to')
             if search_params.get('and_keywords'):
                 params['keywords[0][srws]'] = '7'
                 params['keywords[0][skwc]'] = 'and'

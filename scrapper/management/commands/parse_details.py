@@ -33,7 +33,7 @@ class Command(BaseCommand):
             key = '{}{}'.format(profile.segment, profile.city)
             if key not in city_segment_count:
                 city_segment_count[key] = 0
-            elif city_segment_count[key] > 200:
+            elif city_segment_count[key] > 100:
                 scanned_ids.add(profile.outer_id)
                 continue
             else:
