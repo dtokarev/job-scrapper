@@ -43,3 +43,5 @@ class Command(BaseCommand):
 
             client.api_populate_profiles(profile)
             scanned_ids.add(profile.outer_id)
+
+            profile.save()

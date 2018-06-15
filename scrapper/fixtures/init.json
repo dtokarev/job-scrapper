@@ -1,10 +1,4 @@
 [
-    {"model": "contenttypes.contenttype", "pk": 1, "fields": {"app_label": "contenttypes", "model": "contenttype"}},
-    {"model": "contenttypes.contenttype", "pk": 2, "fields": {"app_label": "scrapper", "model": "segment"}},
-    {"model": "contenttypes.contenttype", "pk": 3, "fields": {"app_label": "scrapper", "model": "profiles"}},
-    {"model": "contenttypes.contenttype", "pk": 4, "fields": {"app_label": "scrapper", "model": "site"}},
-    {"model": "contenttypes.contenttype", "pk": 5, "fields": {"app_label": "scrapper", "model": "task"}},
-    {"model": "contenttypes.contenttype", "pk": 6, "fields": {"app_label": "scrapper", "model": "keyword"}},
     {"model": "scrapper.segment", "pk": 1,
      "fields": {"name": "\u0420\u0435\u043a\u043b\u0430\u043c\u0449\u0438\u043a\u0438"}},
     {"model": "scrapper.segment", "pk": 2, "fields": {"name": "MLM"}},

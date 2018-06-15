@@ -33,6 +33,7 @@ venv/
 
 #IDE
 .idea
+.vscode
 
 #project
 files/

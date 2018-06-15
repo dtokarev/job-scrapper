@@ -12,9 +12,10 @@ log = logging.getLogger('console')
 
 class Command(BaseCommand):
     help = "city / segment matrix"
+    FROM_TASK_ID = 3575
 
     def handle(self, *args, **options):
-        profiles = Profile.objects.all()
+        profiles = Profile.objects.filter(email_provider__isnull=False, task_id__gte=Command.FROM_TASK_ID).all()
 
         # 2 dim dictionary from all records
         m = {}

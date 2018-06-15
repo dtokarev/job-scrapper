@@ -40,17 +40,6 @@ class SuperjobApiClient:
         self.api_search(task)
 
     def api_populate_profiles(self, profile: Profile):
-        # while True:
-        #     request_cnt = 0
-        #     self.refresh_credentials()
-        #     response = get(self.URL_RESUMES_SEARCH,
-        #                    params=params,
-        #                    headers=self.api_headers,
-        #                    bearer=self.access_token)
-        #     if response.status_code != 410:
-        #         break
-        #     request_cnt += 1
-        #     print("superjob token expired, retrying #{}".format(request_cnt))
         self.refresh_credentials()
         response = post(self.URL_RESUMES_BUY.format(profile.resume_id),
                         headers=self.api_headers,
@@ -69,7 +58,6 @@ class SuperjobApiClient:
         profile.phone = p.get('phone1', p.get('phone2', ''))
         profile.info = str(p)
         profile.scan_errors = str(self.errors) if self.errors else None
-        profile.save()
 
     def api_search(self, task: Task) -> None:
         profiles_scanned = 0
@@ -136,6 +124,8 @@ class SuperjobApiClient:
                 params['experience_from'] = search_params.get('experience_from')
             if search_params.get('experience_to'):
                 params['experience_to'] = search_params.get('experience_to')
+            if search_params.get('period'):
+                params['period'] = search_params.get('period')
             if search_params.get('and_keywords'):
                 params['keywords[0][srws]'] = '7'
                 params['keywords[0][skwc]'] = 'and'
